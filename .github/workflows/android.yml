@@ -1,19 +1,22 @@
- name: Build ARION APK
 
-on:
+name: ARION Android APK Build
+
+'on':
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Build ARION
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -22,19 +25,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Extract ARION source
+        run: |
+          unzip -o ARION-Phase1.zip -d extracted
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
-      - name: Extract project
-        run: unzip -o ARION-Phase1.zip
-
-      - name: Build APK
-        run: gradle -p ARION-Phase1 --no-daemon assembleDebug
+      - name: Build debug APK
+        run: |
+          gradle -p extracted/ARION-Phase1 --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ARION-debug-apk
-          path: ARION-Phase1/app/build/outputs/apk/debug/app-debug.apk
+          path: extracted/ARION-Phase1/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
